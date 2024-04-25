@@ -1,6 +1,8 @@
 package geancount
 
-import "io"
+import (
+	"io"
+)
 
 // Ledger ir representing of transaction history
 type Ledger struct {
