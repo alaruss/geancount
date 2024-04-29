@@ -6,7 +6,7 @@ import (
 
 // Ledger ir representing of transaction history
 type Ledger struct {
-	Entires []Entry
+	Directives []Directive
 }
 
 // NewLedger creates ledger
@@ -17,14 +17,17 @@ func NewLedger() *Ledger {
 
 // Load parses the beancount input and load it into Ledger
 func (l *Ledger) Load(r io.Reader) error {
-	l.parse(r)
-	return nil
-}
-
-func (l *Ledger) parse(r io.Reader) error {
-	_, err := parseInput(r)
+	lines, err := parseInput(r)
 	if err != nil {
-		panic(err)
+		return err
+	}
+	lineGroups, err := groupLines(lines)
+	if err != nil {
+		return err
+	}
+	l.Directives, err = createDirectives(lineGroups)
+	if err != nil {
+		return err
 	}
 	return nil
 }

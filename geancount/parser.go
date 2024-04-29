@@ -10,9 +10,8 @@ import (
 
 // Token is a minimal part of input
 type Token struct {
-	text      string
-	isQuoted  bool
-	isComment bool
+	text     string
+	isQuoted bool
 }
 
 // Line is collection of tokens
@@ -35,11 +34,7 @@ func (l Line) String() string {
 		sb.WriteRune('\t')
 	}
 	for _, t := range l.tokens {
-		if t.isComment {
-			sb.WriteString(" / ")
-		} else {
-			sb.WriteString(" | ")
-		}
+		sb.WriteString(" | ")
 		if t.isQuoted {
 			sb.WriteRune('"')
 		}
@@ -69,12 +64,13 @@ type parserState struct {
 
 func (p *parserState) addToken() {
 	if p.sb.Len() > 0 {
-		token := Token{
-			text:      p.sb.String(),
-			isQuoted:  p.isQuoted,
-			isComment: p.inComment,
+		if !p.inComment {
+			token := Token{
+				text:     p.sb.String(),
+				isQuoted: p.isQuoted,
+			}
+			p.tokens = append(p.tokens, token)
 		}
-		p.tokens = append(p.tokens, token)
 		p.sb.Reset()
 	}
 	p.inQuote = false
@@ -158,4 +154,42 @@ func parseInput(r io.Reader) ([]Line, error) {
 		lines = append(lines, Line{lineNum: state.lineNum})
 	}
 	return lines, nil
+}
+
+// LineGroup is collection of lines that form one directive
+type LineGroup struct {
+	lines []Line
+}
+
+func groupLines(lines []Line) ([]LineGroup, error) {
+	lineGroups := []LineGroup{}
+	lg := LineGroup{}
+	for _, line := range lines {
+		if line.IsBlank() {
+			if len(lg.lines) > 0 {
+				lineGroups = append(lineGroups, lg)
+				lg = LineGroup{}
+			}
+		} else if line.isIndented {
+			lg.lines = append(lg.lines, line)
+		} else {
+			if len(lg.lines) > 0 {
+				lineGroups = append(lineGroups, lg)
+				lg = LineGroup{}
+			}
+			lg.lines = append(lg.lines, line)
+		}
+	}
+	if len(lg.lines) > 0 {
+		lineGroups = append(lineGroups, lg)
+	}
+	return lineGroups, nil
+}
+
+func createDirectives(lineGroups []LineGroup) ([]Directive, error) {
+	directives := []Directive{}
+	for _ = range lineGroups {
+
+	}
+	return directives, nil
 }

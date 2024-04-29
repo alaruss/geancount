@@ -4,8 +4,8 @@ import (
 	"time"
 )
 
-// Entry in interface for all entries in the Ledger
-type Entry interface {
+// Directive in interface for all entries in the Ledger
+type Directive interface {
 	Date() time.Time
 }
 

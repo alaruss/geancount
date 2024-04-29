@@ -20,30 +20,30 @@ func TestGetLine(t *testing.T) {
 	assert.Nil(t, err)
 	expected := []Line{
 		{lineNum: 1, isIndented: false, tokens: []Token{
-			{text: "2000-01-01", isQuoted: false, isComment: false},
-			{text: "open", isQuoted: false, isComment: false},
-			{text: "Equity:Opening-Balances", isQuoted: false, isComment: false},
+			{text: "2000-01-01", isQuoted: false},
+			{text: "open", isQuoted: false},
+			{text: "Equity:Opening-Balances", isQuoted: false},
 		}},
 		{lineNum: 2, isIndented: false, tokens: []Token{}},
 		{lineNum: 3, isIndented: false, tokens: []Token{
-			{text: "2000-01-01", isQuoted: false, isComment: false},
-			{text: "balance", isQuoted: false, isComment: false},
-			{text: "Assets:Bank", isQuoted: false, isComment: false},
-			{text: "0", isQuoted: false, isComment: false},
-			{text: "EUR", isQuoted: false, isComment: false},
+			{text: "2000-01-01", isQuoted: false},
+			{text: "balance", isQuoted: false},
+			{text: "Assets:Bank", isQuoted: false},
+			{text: "0", isQuoted: false},
+			{text: "EUR", isQuoted: false},
 		}},
 		{lineNum: 4, isIndented: false, tokens: []Token{}},
 		{lineNum: 5, isIndented: false, tokens: []Token{
-			{text: "2000-01-02", isQuoted: false, isComment: false},
-			{text: "*", isQuoted: false, isComment: false},
+			{text: "2000-01-02", isQuoted: false},
+			{text: "*", isQuoted: false},
 		}},
 		{lineNum: 6, isIndented: true, tokens: []Token{
-			{text: "Assets:Bank", isQuoted: false, isComment: false},
+			{text: "Assets:Bank", isQuoted: false},
 		}},
 		{lineNum: 7, isIndented: true, tokens: []Token{
-			{text: "Income:Job", isQuoted: false, isComment: false},
-			{text: "-100.00", isQuoted: false, isComment: false},
-			{text: "EUR", isQuoted: false, isComment: false},
+			{text: "Income:Job", isQuoted: false},
+			{text: "-100.00", isQuoted: false},
+			{text: "EUR", isQuoted: false},
 		}},
 		{lineNum: 8, isIndented: false},
 	}
@@ -60,21 +60,15 @@ func TestParseComment(t *testing.T) {
 	assert.Nil(t, err)
 	expected := []Line{
 		{lineNum: 1, isIndented: false, tokens: []Token{
-			{text: "2000-01-01", isQuoted: false, isComment: false},
-			{text: "open", isQuoted: false, isComment: false},
-			{text: "Equity:Opening-Balances", isQuoted: false, isComment: false},
-			{text: "inline", isQuoted: false, isComment: true},
-			{text: ";comment", isQuoted: false, isComment: true},
+			{text: "2000-01-01", isQuoted: false},
+			{text: "open", isQuoted: false},
+			{text: "Equity:Opening-Balances", isQuoted: false},
 		}},
-		{lineNum: 2, isIndented: false, tokens: []Token{
-			{text: "2000-01-01", isQuoted: false, isComment: true},
-			{text: "open", isQuoted: false, isComment: true},
-			{text: "Assets:Bank1", isQuoted: false, isComment: true},
-		}},
+		{lineNum: 2, isIndented: false, tokens: []Token{}},
 		{lineNum: 3, isIndented: false, tokens: []Token{
-			{text: "2000-01-01", isQuoted: false, isComment: false},
-			{text: "open", isQuoted: false, isComment: false},
-			{text: "Assets:Bank2", isQuoted: false, isComment: false},
+			{text: "2000-01-01", isQuoted: false},
+			{text: "open", isQuoted: false},
+			{text: "Assets:Bank2", isQuoted: false},
 		}},
 		{lineNum: 4, isIndented: false},
 	}
@@ -86,10 +80,10 @@ func TestParseQuotes(t *testing.T) {
 	assert.Nil(t, err)
 	expected := []Line{
 		{lineNum: 1, isIndented: false, tokens: []Token{
-			{text: "2000-01-02", isQuoted: false, isComment: false},
-			{text: "*", isQuoted: false, isComment: false},
-			{text: "Payee", isQuoted: true, isComment: false},
-			{text: "Narration", isQuoted: false, isComment: false},
+			{text: "2000-01-02", isQuoted: false},
+			{text: "*", isQuoted: false},
+			{text: "Payee", isQuoted: true},
+			{text: "Narration", isQuoted: false},
 		}},
 		{lineNum: 2, isIndented: false},
 	}
@@ -99,10 +93,10 @@ func TestParseQuotes(t *testing.T) {
 	assert.Nil(t, err)
 	expected = []Line{
 		{lineNum: 1, isIndented: false, tokens: []Token{
-			{text: "2000-01-02", isQuoted: false, isComment: false},
-			{text: "*", isQuoted: false, isComment: false},
-			{text: "Payee", isQuoted: true, isComment: false},
-			{text: "Narration", isQuoted: true, isComment: false},
+			{text: "2000-01-02", isQuoted: false},
+			{text: "*", isQuoted: false},
+			{text: "Payee", isQuoted: true},
+			{text: "Narration", isQuoted: true},
 		}},
 		{lineNum: 2, isIndented: false},
 	}
@@ -112,10 +106,10 @@ func TestParseQuotes(t *testing.T) {
 	assert.Nil(t, err)
 	expected = []Line{
 		{lineNum: 1, isIndented: false, tokens: []Token{
-			{text: "2000-01-02", isQuoted: false, isComment: false},
-			{text: "*", isQuoted: false, isComment: false},
-			{text: "Payee", isQuoted: true, isComment: false},
-			{text: "Narration", isQuoted: true, isComment: false},
+			{text: "2000-01-02", isQuoted: false},
+			{text: "*", isQuoted: false},
+			{text: "Payee", isQuoted: true},
+			{text: "Narration", isQuoted: true},
 		}},
 		{lineNum: 2, isIndented: false},
 	}
@@ -125,10 +119,10 @@ func TestParseQuotes(t *testing.T) {
 	assert.Nil(t, err)
 	expected = []Line{
 		{lineNum: 1, isIndented: false, tokens: []Token{
-			{text: "2000-01-02", isQuoted: false, isComment: false},
-			{text: "*", isQuoted: false, isComment: false},
-			{text: "Payee", isQuoted: true, isComment: false},
-			{text: "Narration \" with quote", isQuoted: true, isComment: false},
+			{text: "2000-01-02", isQuoted: false},
+			{text: "*", isQuoted: false},
+			{text: "Payee", isQuoted: true},
+			{text: "Narration \" with quote", isQuoted: true},
 		}},
 		{lineNum: 2, isIndented: false},
 	}
@@ -141,15 +135,15 @@ multiline"
 	assert.Nil(t, err)
 	expected = []Line{
 		{lineNum: 1, isIndented: false, tokens: []Token{
-			{text: "2000-01-02", isQuoted: false, isComment: false},
-			{text: "*", isQuoted: false, isComment: false},
-			{text: "Payee", isQuoted: true, isComment: false},
-			{text: "Narration \nmulti\nmultiline", isQuoted: true, isComment: false},
+			{text: "2000-01-02", isQuoted: false},
+			{text: "*", isQuoted: false},
+			{text: "Payee", isQuoted: true},
+			{text: "Narration \nmulti\nmultiline", isQuoted: true},
 		}},
 		{lineNum: 4, isIndented: false, tokens: []Token{
-			{text: "2000-01-01", isQuoted: false, isComment: false},
-			{text: "open", isQuoted: false, isComment: false},
-			{text: "Assets:Bank1", isQuoted: false, isComment: false},
+			{text: "2000-01-01", isQuoted: false},
+			{text: "open", isQuoted: false},
+			{text: "Assets:Bank1", isQuoted: false},
 		}},
 		{lineNum: 5, isIndented: false},
 	}
@@ -165,4 +159,37 @@ func TestLineIsBlank(t *testing.T) {
 
 	line.tokens = append(line.tokens, Token{})
 	assert.False(t, line.IsBlank())
+}
+
+func TestGroupLines(t *testing.T) {
+	lineGroups, err := groupLines([]Line{
+		{lineNum: 1},
+		{lineNum: 2, tokens: []Token{{text: "1"}}},
+		{lineNum: 3, tokens: []Token{{text: "2"}}},
+		{lineNum: 4, isIndented: true, tokens: []Token{{text: "3"}}},
+		{lineNum: 5, isIndented: true, tokens: []Token{{text: "4"}}},
+		{lineNum: 6},
+		{lineNum: 7, tokens: []Token{{text: "5"}}},
+		{lineNum: 8, isIndented: true, tokens: []Token{{text: "6"}}},
+		{lineNum: 9, tokens: []Token{{text: "7"}}},
+	})
+	assert.Nil(t, err)
+	expected := []LineGroup{
+		{lines: []Line{
+			{lineNum: 2, tokens: []Token{{text: "1"}}},
+		}},
+		{lines: []Line{
+			{lineNum: 3, tokens: []Token{{text: "2"}}},
+			{lineNum: 4, isIndented: true, tokens: []Token{{text: "3"}}},
+			{lineNum: 5, isIndented: true, tokens: []Token{{text: "4"}}},
+		}},
+		{lines: []Line{
+			{lineNum: 7, tokens: []Token{{text: "5"}}},
+			{lineNum: 8, isIndented: true, tokens: []Token{{text: "6"}}},
+		}},
+		{lines: []Line{
+			{lineNum: 9, tokens: []Token{{text: "7"}}},
+		}},
+	}
+	assert.Equal(t, expected, lineGroups)
 }
