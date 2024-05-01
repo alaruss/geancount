@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 	"unicode/utf8"
 )
 
@@ -188,8 +189,38 @@ func groupLines(lines []Line) ([]LineGroup, error) {
 
 func createDirectives(lineGroups []LineGroup) ([]Directive, error) {
 	directives := []Directive{}
-	for _ = range lineGroups {
+	for _, lg := range lineGroups {
 
+		switch lg.lines[0].tokens[0].text {
+		case "option", "include", "pushtag", "poptag": // TODO implement
+			continue
+		default:
+			var err error
+			var directive Directive
+			switch lg.lines[0].tokens[1].text {
+			case "open":
+				a, _ := newAccountOpen(lg)
+				directives = append(directives, a)
+			case "close":
+				directive, err = newAccountClose(lg)
+			case "balance":
+				directive, err = newBalance(lg)
+			case "price":
+				directive, err = newPrice(lg)
+			case "*", "!", "txn":
+				directive, err = newTransaction(lg)
+			}
+			if err == ErrNotDirective { // just ignore
+				continue
+			} else if err != nil {
+				return directives, err
+			}
+			directives = append(directives, directive)
+		}
 	}
 	return directives, nil
+}
+
+func parseDate(s string) (time.Time, error) {
+	return time.Parse("2006-01-02", s)
 }

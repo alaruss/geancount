@@ -9,8 +9,8 @@ type Currency string
 
 // Account is where data is stored
 type Account struct {
-	name     string
-	currency *Currency // Can be null
+	name       string
+	currencies []Currency
 }
 
 func (a Account) String() string {
