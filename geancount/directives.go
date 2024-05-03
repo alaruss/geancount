@@ -27,12 +27,16 @@ func (b Balance) Date() time.Time {
 }
 
 func (b Balance) Apply(ls *LedgerState) error {
-	currentBalance, ok := ls.balances[b.account]
+	accountBalance, ok := ls.balances[b.account]
 	if !ok {
 		return fmt.Errorf("Balance of unknown account %s", b.account)
 	}
-	if !currentBalance.Equal(b.amount.value) {
-		return fmt.Errorf("Balance expected %s but calcultated %s", b.amount.value, currentBalance)
+	currencyBalance, ok := accountBalance[b.amount.currency]
+	if !ok {
+		currencyBalance = decimal.Zero
+	}
+	if !currencyBalance.Equal(b.amount.value) {
+		return fmt.Errorf("Balance expected %s but calcultated %s", b.amount.value, currencyBalance)
 	}
 	return nil
 }
@@ -50,7 +54,7 @@ func (p Price) Date() time.Time {
 type AccountOpen struct {
 	date       time.Time
 	account    AccountName
-	currencies []Currency
+	currencies map[Currency]struct{}
 }
 
 func (a AccountOpen) Date() time.Time {
@@ -62,7 +66,7 @@ func (a AccountOpen) Apply(ls *LedgerState) error {
 		return fmt.Errorf("Account %s already open", a.account)
 	}
 	ls.accounts[a.account] = Account{name: a.account, currencies: a.currencies}
-	ls.balances[a.account] = decimal.Zero
+	ls.balances[a.account] = CurrenciesAmounts{}
 	return nil
 }
 
@@ -96,12 +100,12 @@ func newAccountOpen(lg LineGroup) (AccountOpen, error) {
 		return AccountOpen{}, fmt.Errorf("more tokens than expected")
 	}
 	accountName := line.tokens[2].text
-	d := AccountOpen{date: date, account: AccountName(accountName)}
+	d := AccountOpen{date: date, account: AccountName(accountName), currencies: map[Currency]struct{}{}}
 	if len(line.tokens) == 4 {
 		for _, currName := range strings.Split(line.tokens[3].text, ";") {
 			currName = strings.Trim(currName, "")
 			if len(currName) > 0 {
-				d.currencies = append(d.currencies, Currency(currName))
+				d.currencies[Currency(currName)] = struct{}{}
 			}
 		}
 	}

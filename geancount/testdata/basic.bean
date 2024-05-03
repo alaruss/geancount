@@ -1,5 +1,5 @@
 2000-01-01 open Equity:Opening-Balances ; open accounts
-2000-01-01 open Assets:Bank
+2000-01-01 open Assets:Bank EUR
 2000-01-01 open Expenses:Food
 2000-01-01 open Income:Job
 

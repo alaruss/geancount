@@ -7,9 +7,12 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+type CurrenciesAmounts map[Currency]decimal.Decimal
+type AccountsBalances map[AccountName]CurrenciesAmounts
+
 type LedgerState struct {
 	accounts map[AccountName]Account
-	balances map[AccountName]decimal.Decimal
+	balances AccountsBalances
 }
 
 // Ledger ir representing of transaction history
@@ -49,10 +52,10 @@ func (l *Ledger) Load(r io.Reader) error {
 	return nil
 }
 
-func (l *Ledger) GetBalances() (map[AccountName]decimal.Decimal, error) {
+func (l *Ledger) GetBalances() (AccountsBalances, error) {
 	ls := LedgerState{}
 	ls.accounts = map[AccountName]Account{}
-	ls.balances = map[AccountName]decimal.Decimal{}
+	ls.balances = AccountsBalances{}
 	for _, directive := range l.directives {
 		err := directive.Apply(&ls)
 		if err != nil {

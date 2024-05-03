@@ -4,9 +4,10 @@ package cmd
 import (
 	"cmp"
 	"fmt"
-	"log"
 	"os"
 	"slices"
+
+	"github.com/rs/zerolog/log"
 
 	"github.com/alaruss/geancount/geancount"
 	"github.com/urfave/cli/v2"
@@ -20,30 +21,22 @@ func init() {
 func CreateCLI() {
 	app := &cli.App{
 		Name:  "geancount",
-		Usage: "Loads and process beancount file",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "file",
-				Aliases: []string{"f"},
-				Value:   "main.bean",
-				Usage:   "File to process",
-			},
-		},
+		Usage: "Loads beancount file and prints balances",
 		Action: func(cCtx *cli.Context) error {
-			filename := cCtx.String("file")
+			filename := cCtx.Args().Get(0)
 			file, err := os.Open(filename)
 			if err != nil {
-				panic(err)
+				return err
 			}
 			defer file.Close()
 			ledger := geancount.NewLedger()
 			err = ledger.Load(file)
 			if err != nil {
-				panic(err)
+				return err
 			}
 			balances, err := ledger.GetBalances()
 			if err != nil {
-				panic(err)
+				return err
 			}
 			keys := make([]geancount.AccountName, 0, len(balances))
 			for k := range balances {
@@ -61,6 +54,6 @@ func CreateCLI() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		log.Fatal(err)
+		log.Fatal().Msg(err.Error())
 	}
 }

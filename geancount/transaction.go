@@ -31,7 +31,14 @@ func (t Transaction) Apply(ls *LedgerState) error {
 		if _, ok := ls.accounts[p.account]; !ok {
 			return fmt.Errorf("Account %s is not open", p.account)
 		}
-		ls.balances[p.account] = ls.balances[p.account].Add(p.amount.value)
+		if !ls.accounts[p.account].CurrencyAllowed(p.amount.currency) {
+			return fmt.Errorf("Currency %s can not be used in account %s", p.amount.currency, p.account)
+		}
+		if _, ok := ls.balances[p.account][p.amount.currency]; !ok {
+			ls.balances[p.account][p.amount.currency] = p.amount.value
+		} else {
+			ls.balances[p.account][p.amount.currency] = ls.balances[p.account][p.amount.currency].Add(p.amount.value)
+		}
 	}
 	return nil
 }
