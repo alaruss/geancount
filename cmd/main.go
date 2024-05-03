@@ -2,8 +2,11 @@
 package cmd
 
 import (
+	"cmp"
+	"fmt"
 	"log"
 	"os"
+	"slices"
 
 	"github.com/alaruss/geancount/geancount"
 	"github.com/urfave/cli/v2"
@@ -37,6 +40,20 @@ func CreateCLI() {
 			err = ledger.Load(file)
 			if err != nil {
 				panic(err)
+			}
+			balances, err := ledger.GetBalances()
+			if err != nil {
+				panic(err)
+			}
+			keys := make([]geancount.AccountName, 0, len(balances))
+			for k := range balances {
+				keys = append(keys, k)
+			}
+			slices.SortFunc(keys, func(i, j geancount.AccountName) int {
+				return cmp.Compare(string(i), string(j))
+			})
+			for _, k := range keys {
+				fmt.Printf("%s: %s\n", k, balances[k])
 			}
 			return nil
 		},

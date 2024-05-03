@@ -7,14 +7,17 @@ import (
 // Currency is name like EUR, USD or BOTTLE_CAP
 type Currency string
 
+// AccountName is name of account
+type AccountName string
+
 // Account is where data is stored
 type Account struct {
-	name       string
+	name       AccountName
 	currencies []Currency
 }
 
 func (a Account) String() string {
-	return a.name
+	return string(a.name)
 }
 
 // Amount is value and curency

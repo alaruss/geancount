@@ -2,11 +2,19 @@ package geancount
 
 import (
 	"io"
+
+	"github.com/shopspring/decimal"
+	"golang.org/x/exp/slices"
 )
+
+type LedgerState struct {
+	accounts map[AccountName]Account
+	balances map[AccountName]decimal.Decimal
+}
 
 // Ledger ir representing of transaction history
 type Ledger struct {
-	Directives []Directive
+	directives []Directive
 }
 
 // NewLedger creates ledger
@@ -25,9 +33,31 @@ func (l *Ledger) Load(r io.Reader) error {
 	if err != nil {
 		return err
 	}
-	l.Directives, err = createDirectives(lineGroups)
+	directives, err := createDirectives(lineGroups)
+	slices.SortFunc(directives, func(i, j Directive) int {
+		if i.Date().Before(j.Date()) {
+			return -1
+		} else if i.Date().After(j.Date()) {
+			return 1
+		}
+		return 0
+	})
+	l.directives = directives
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (l *Ledger) GetBalances() (map[AccountName]decimal.Decimal, error) {
+	ls := LedgerState{}
+	ls.accounts = map[AccountName]Account{}
+	ls.balances = map[AccountName]decimal.Decimal{}
+	for _, directive := range l.directives {
+		err := directive.Apply(&ls)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return ls.balances, nil
 }

@@ -12,17 +12,29 @@ import (
 // Directive in interface for all entries in the Ledger
 type Directive interface {
 	Date() time.Time
+	Apply(*LedgerState) error
 }
 
 // Balance is state of account at the data
 type Balance struct {
 	date    time.Time
-	account Account
+	account AccountName
 	amount  Amount
 }
 
 func (b Balance) Date() time.Time {
 	return b.date
+}
+
+func (b Balance) Apply(ls *LedgerState) error {
+	currentBalance, ok := ls.balances[b.account]
+	if !ok {
+		return fmt.Errorf("Balance of unknown account %s", b.account)
+	}
+	if !currentBalance.Equal(b.amount.value) {
+		return fmt.Errorf("Balance expected %s but calcultated %s", b.amount.value, currentBalance)
+	}
+	return nil
 }
 
 type Price struct {
@@ -36,21 +48,40 @@ func (p Price) Date() time.Time {
 }
 
 type AccountOpen struct {
-	date    time.Time
-	account Account
+	date       time.Time
+	account    AccountName
+	currencies []Currency
 }
 
 func (a AccountOpen) Date() time.Time {
 	return a.date
 }
 
+func (a AccountOpen) Apply(ls *LedgerState) error {
+	if _, ok := ls.accounts[a.account]; ok {
+		return fmt.Errorf("Account %s already open", a.account)
+	}
+	ls.accounts[a.account] = Account{name: a.account, currencies: a.currencies}
+	ls.balances[a.account] = decimal.Zero
+	return nil
+}
+
 type AccountClose struct {
 	date    time.Time
-	account Account
+	account AccountName
 }
 
 func (a AccountClose) Date() time.Time {
 	return a.date
+}
+
+func (a AccountClose) Apply(ls *LedgerState) error {
+	if _, ok := ls.accounts[a.account]; !ok {
+		return fmt.Errorf("Account %s is not open", a.account)
+	}
+	delete(ls.accounts, a.account)
+	delete(ls.balances, a.account)
+	return nil
 }
 
 var ErrNotDirective = errors.New("not directive")
@@ -65,12 +96,12 @@ func newAccountOpen(lg LineGroup) (AccountOpen, error) {
 		return AccountOpen{}, fmt.Errorf("more tokens than expected")
 	}
 	accountName := line.tokens[2].text
-	d := AccountOpen{date: date, account: Account{name: accountName}}
+	d := AccountOpen{date: date, account: AccountName(accountName)}
 	if len(line.tokens) == 4 {
 		for _, currName := range strings.Split(line.tokens[3].text, ";") {
 			currName = strings.Trim(currName, "")
 			if len(currName) > 0 {
-				d.account.currencies = append(d.account.currencies, Currency(currName))
+				d.currencies = append(d.currencies, Currency(currName))
 			}
 		}
 	}
@@ -87,7 +118,7 @@ func newAccountClose(lg LineGroup) (AccountClose, error) {
 		return AccountClose{}, fmt.Errorf("more tokens than expected")
 	}
 	accountName := line.tokens[2].text
-	d := AccountClose{date: date, account: Account{name: accountName}}
+	d := AccountClose{date: date, account: AccountName(accountName)}
 	return d, nil
 }
 
@@ -106,7 +137,7 @@ func newBalance(lg LineGroup) (Balance, error) {
 		return Balance{}, fmt.Errorf("can not parse amount value")
 	}
 	amount := Amount{value: amountValue, currency: Currency(line.tokens[4].text)}
-	d := Balance{date: date, account: Account{name: accountName}, amount: amount}
+	d := Balance{date: date, account: AccountName(accountName), amount: amount}
 	return d, nil
 }
 

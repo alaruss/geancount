@@ -199,14 +199,11 @@ func createDirectives(lineGroups []LineGroup) ([]Directive, error) {
 			var directive Directive
 			switch lg.lines[0].tokens[1].text {
 			case "open":
-				a, _ := newAccountOpen(lg)
-				directives = append(directives, a)
+				directive, err = newAccountOpen(lg)
 			case "close":
 				directive, err = newAccountClose(lg)
 			case "balance":
 				directive, err = newBalance(lg)
-			case "price":
-				directive, err = newPrice(lg)
 			case "*", "!", "txn":
 				directive, err = newTransaction(lg)
 			}

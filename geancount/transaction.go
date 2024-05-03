@@ -9,7 +9,7 @@ import (
 
 // Posting is a leg of a transaction
 type Posting struct {
-	account Account
+	account AccountName
 	amount  Amount
 }
 
@@ -24,6 +24,16 @@ type Transaction struct {
 
 func (t Transaction) Date() time.Time {
 	return t.date
+}
+
+func (t Transaction) Apply(ls *LedgerState) error {
+	for _, p := range t.postings {
+		if _, ok := ls.accounts[p.account]; !ok {
+			return fmt.Errorf("Account %s is not open", p.account)
+		}
+		ls.balances[p.account] = ls.balances[p.account].Add(p.amount.value)
+	}
+	return nil
 }
 
 func (t Transaction) balancePostings() error {
@@ -75,6 +85,10 @@ func newTransaction(lg LineGroup) (Transaction, error) {
 	}
 
 	d := Transaction{date: date, status: status, payee: payee, narration: narration, postings: postings}
+	err = d.balancePostings()
+	if err != nil {
+		return Transaction{}, err
+	}
 	return d, nil
 }
 
@@ -91,7 +105,7 @@ func newPostings(lines []Line) ([]Posting, error) {
 			amount.value = amountValue
 			amount.currency = Currency(line.tokens[2].text)
 		}
-		p := Posting{account: Account{name: accountName}, amount: amount}
+		p := Posting{account: AccountName(accountName), amount: amount}
 		postings = append(postings, p)
 	}
 	return postings, nil
