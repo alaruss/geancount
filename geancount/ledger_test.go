@@ -17,6 +17,7 @@ func TestNewLedger(t *testing.T) {
 	}
 	defer file.Close()
 	ledger.Load(file)
+	assert.Equal(t, ledger.operatingCurrencies, []Currency{"EUR"})
 }
 
 func TestGetBalances(t *testing.T) {

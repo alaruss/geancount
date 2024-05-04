@@ -4,9 +4,12 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"slices"
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	"github.com/rs/zerolog/log"
 )
 
 // Token is a minimal part of input
@@ -187,13 +190,20 @@ func groupLines(lines []Line) ([]LineGroup, error) {
 	return lineGroups, nil
 }
 
-func createDirectives(lineGroups []LineGroup) ([]Directive, error) {
+func (l *Ledger) createDirectives(lineGroups []LineGroup) error {
 	directives := []Directive{}
 	for _, lg := range lineGroups {
 
 		switch lg.lines[0].tokens[0].text {
-		case "option", "include", "pushtag", "poptag": // TODO implement
+		case "include", "pushtag", "poptag": // TODO implement
 			continue
+		case "option":
+			err := l.applyOption(lg)
+			if err == ErrNotDirective {
+				continue
+			} else if err != nil {
+				return err
+			}
 		default:
 			var err error
 			var directive Directive
@@ -210,12 +220,39 @@ func createDirectives(lineGroups []LineGroup) ([]Directive, error) {
 			if err == ErrNotDirective { // just ignore
 				continue
 			} else if err != nil {
-				return directives, err
+				return err
 			}
 			directives = append(directives, directive)
 		}
 	}
-	return directives, nil
+	slices.SortFunc(directives, func(i, j Directive) int {
+		if i.Date().Before(j.Date()) {
+			return -1
+		} else if i.Date().After(j.Date()) {
+			return 1
+		}
+		return 0
+	})
+	l.directives = directives
+	return nil
+}
+
+func (l *Ledger) applyOption(lg LineGroup) error {
+	line := lg.lines[0]
+	if len(line.tokens) < 2 {
+		return ErrNotDirective
+	}
+	switch optionName := line.tokens[1].text; optionName {
+	case "operating_currency":
+		if len(line.tokens) < 3 {
+			log.Info().Int("line", line.lineNum).Msg("operating_currency has no currency")
+			return ErrNotDirective
+		}
+		l.operatingCurrencies = append(l.operatingCurrencies, Currency(line.tokens[2].text))
+	default:
+		log.Info().Int("line", line.lineNum).Msgf("Unknown option %s", optionName)
+	}
+	return nil
 }
 
 func parseDate(s string) (time.Time, error) {
