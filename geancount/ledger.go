@@ -62,9 +62,6 @@ func (l *Ledger) Load(r io.Reader) error {
 	if err != nil {
 		return err
 	}
-	if err != nil {
-		return err
-	}
 	return nil
 }
 

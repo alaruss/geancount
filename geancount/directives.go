@@ -15,9 +15,8 @@ type Directive interface {
 	Apply(*LedgerState) error
 }
 
-// TODO check if needed
 // ErrNotDirective indecates that directive can not be parsed
-var ErrNotDirective = errors.New("not directive")
+var ErrNotDirective = errors.New("not directive") // TODO check if needed
 
 // Balance checks the amount of the account at the date
 type Balance struct {
