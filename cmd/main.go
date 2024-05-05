@@ -21,13 +21,8 @@ func CreateCLI() {
 		Usage: "Loads beancount file and prints balances",
 		Action: func(cCtx *cli.Context) error {
 			filename := cCtx.Args().Get(0)
-			file, err := os.Open(filename)
-			if err != nil {
-				return err
-			}
-			defer file.Close()
 			ledger := geancount.NewLedger()
-			err = ledger.Load(file)
+			err := ledger.LoadFile(filename)
 			if err != nil {
 				return err
 			}

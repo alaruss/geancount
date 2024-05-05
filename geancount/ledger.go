@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"math/big"
+	"os"
 	"slices"
 
 	"github.com/rs/zerolog/log"
@@ -35,7 +36,18 @@ func NewLedger() *Ledger {
 	return &l
 }
 
-// Load parses the beancount input and load it into Ledger
+// LoadFile parses the file and loads it into Ledger
+func (l *Ledger) LoadFile(filename string) error {
+	file, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	err = l.Load(file)
+	return err
+}
+
+// Load parses the input stream and loads it into Ledger
 func (l *Ledger) Load(r io.Reader) error {
 	lines, err := parseInput(r)
 	if err != nil {
