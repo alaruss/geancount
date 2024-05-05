@@ -15,17 +15,23 @@ type Directive interface {
 	Apply(*LedgerState) error
 }
 
-// Balance is state of account at the data
+// TODO check if needed
+// ErrNotDirective indecates that directive can not be parsed
+var ErrNotDirective = errors.New("not directive")
+
+// Balance checks the amount of the account at the date
 type Balance struct {
 	date    time.Time
 	account AccountName
 	amount  Amount
 }
 
+// Date returns date of the balance
 func (b Balance) Date() time.Time {
 	return b.date
 }
 
+// Apply check the if the calcualted balance is correct
 func (b Balance) Apply(ls *LedgerState) error {
 	accountBalance, ok := ls.balances[b.account]
 	if !ok {
@@ -41,26 +47,31 @@ func (b Balance) Apply(ls *LedgerState) error {
 	return nil
 }
 
+// Price set the price of a currency on the date
 type Price struct {
 	date     time.Time
 	currency Currency
 	amount   Amount
 }
 
+// Date returns date
 func (p Price) Date() time.Time {
 	return p.date
 }
 
+// AccountOpen opens account and optionaly set currencies which can be used
 type AccountOpen struct {
 	date       time.Time
 	account    AccountName
 	currencies map[Currency]struct{}
 }
 
+// Date returns date
 func (a AccountOpen) Date() time.Time {
 	return a.date
 }
 
+// Apply adds account to the LedgerState
 func (a AccountOpen) Apply(ls *LedgerState) error {
 	if _, ok := ls.accounts[a.account]; ok {
 		return fmt.Errorf("Account %s already open", a.account)
@@ -70,15 +81,18 @@ func (a AccountOpen) Apply(ls *LedgerState) error {
 	return nil
 }
 
+// AccountClose closes the account
 type AccountClose struct {
 	date    time.Time
 	account AccountName
 }
 
+// Date returns date
 func (a AccountClose) Date() time.Time {
 	return a.date
 }
 
+// Apply removes account for the LedgerState
 func (a AccountClose) Apply(ls *LedgerState) error {
 	if _, ok := ls.accounts[a.account]; !ok {
 		return fmt.Errorf("Account %s is not open", a.account)
@@ -87,8 +101,6 @@ func (a AccountClose) Apply(ls *LedgerState) error {
 	delete(ls.balances, a.account)
 	return nil
 }
-
-var ErrNotDirective = errors.New("not directive")
 
 func newAccountOpen(lg LineGroup) (AccountOpen, error) {
 	line := lg.lines[0]

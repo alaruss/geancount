@@ -22,10 +22,12 @@ type Transaction struct {
 	postings  []Posting
 }
 
+// Date return transaction date
 func (t Transaction) Date() time.Time {
 	return t.date
 }
 
+// Apply balance postings of the transaction and change balances
 func (t Transaction) Apply(ls *LedgerState) error {
 	// Before apply check if all postings can be applied
 	for _, p := range t.postings {
