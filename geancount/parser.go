@@ -216,6 +216,8 @@ func (l *Ledger) createDirectives(lineGroups []LineGroup) error {
 				directive, err = newBalance(lg)
 			case "*", "!", "txn":
 				directive, err = newTransaction(lg)
+			default:
+				continue
 			}
 			if err == ErrNotDirective { // just ignore
 				continue
