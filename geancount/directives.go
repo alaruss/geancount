@@ -107,7 +107,7 @@ func newAccountOpen(lg LineGroup) (AccountOpen, error) {
 	if err != nil {
 		return AccountOpen{}, ErrNotDirective
 	}
-	if len(line.tokens) > 4 {
+	if len(line.tokens) > 5 {
 		return AccountOpen{}, fmt.Errorf("more tokens than expected")
 	}
 	accountName := line.tokens[2].text
@@ -147,9 +147,9 @@ func newBalance(lg LineGroup) (Balance, error) {
 		return Balance{}, fmt.Errorf("more tokens than expected")
 	}
 	accountName := line.tokens[2].text
-	amountValue, err := decimal.NewFromString(line.tokens[3].text)
+	amountValue, err := decimal.NewFromString(strings.ReplaceAll(line.tokens[3].text, ",", ""))
 	if err != nil {
-		return Balance{}, fmt.Errorf("can not parse amount value")
+		return Balance{}, fmt.Errorf("can not parse amount value %s", line.tokens[3].text)
 	}
 	amount := Amount{value: amountValue, currency: Currency(line.tokens[4].text)}
 	d := Balance{date: date, account: AccountName(accountName), amount: amount}
@@ -166,7 +166,7 @@ func newPrice(lg LineGroup) (Price, error) {
 		return Price{}, fmt.Errorf("more tokens than expected")
 	}
 	currency := Currency(line.tokens[2].text)
-	amountValue, err := decimal.NewFromString(line.tokens[3].text)
+	amountValue, err := decimal.NewFromString(strings.ReplaceAll(line.tokens[3].text, ",", ""))
 	if err != nil {
 		return Price{}, fmt.Errorf("can not parse amount value")
 	}

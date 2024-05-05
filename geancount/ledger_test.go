@@ -1,7 +1,6 @@
 package geancount
 
 import (
-	"os"
 	"testing"
 
 	"github.com/shopspring/decimal"
@@ -11,24 +10,15 @@ import (
 func TestNewLedger(t *testing.T) {
 	ledger := NewLedger()
 	assert.NotNil(t, ledger)
-	file, err := os.Open("testdata/basic.bean")
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
-	ledger.Load(file)
+	err := ledger.LoadFile("testdata/basic.bean")
+	assert.Nil(t, err)
 	assert.Equal(t, ledger.operatingCurrencies, []Currency{"EUR"})
 }
 
 func TestGetBalances(t *testing.T) {
 	ledger := NewLedger()
 	assert.NotNil(t, ledger)
-	file, err := os.Open("testdata/basic.bean")
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
-	ledger.Load(file)
+	ledger.LoadFile("testdata/basic.bean")
 	balances, err := ledger.GetBalances()
 	assert.Nil(t, err)
 	curr := Currency("EUR")

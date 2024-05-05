@@ -3,9 +3,8 @@ package geancount
 import (
 	"cmp"
 	"fmt"
-	"io"
-	"math/big"
 	"os"
+	"path/filepath"
 	"slices"
 
 	"github.com/rs/zerolog/log"
@@ -36,20 +35,24 @@ func NewLedger() *Ledger {
 	return &l
 }
 
-// LoadFile parses the file and loads it into Ledger
+// LoadFile reads the file, parses it and adds content Ledger
 func (l *Ledger) LoadFile(filename string) error {
+	return l.loadFile(filename, true)
+}
+
+func (l *Ledger) loadFile(filename string, sortDirectives bool) error {
 	file, err := os.Open(filename)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-	err = l.Load(file)
-	return err
-}
+	abs, err := filepath.Abs(filename)
+	if err != nil {
+		return err
+	}
+	parentDir := filepath.Dir(abs)
 
-// Load parses the input stream and loads it into Ledger
-func (l *Ledger) Load(r io.Reader) error {
-	lines, err := parseInput(r)
+	lines, err := parseInput(file)
 	if err != nil {
 		return err
 	}
@@ -58,9 +61,12 @@ func (l *Ledger) Load(r io.Reader) error {
 		return err
 	}
 
-	err = l.createDirectives(lineGroups)
+	err = l.createDirectives(lineGroups, filename, parentDir)
 	if err != nil {
 		return err
+	}
+	if sortDirectives {
+		l.sortDirectives()
 	}
 	return nil
 }
@@ -104,10 +110,13 @@ func (l *Ledger) PrintBalances(balances AccountsBalances) error {
 		})
 		for _, c := range currencies {
 			v := balances[a][c]
-			frac := v.Mod(one).Coefficient()
+			frac := v.Mod(one).CoefficientInt64()
 			fmt.Printf("%-[1]*[2]s\t", accountPad, a)
 			fmt.Printf("%10d", v.IntPart())
-			if frac.Cmp(big.NewInt(0)) != 0 {
+			if frac != 0 {
+				if frac < 0 {
+					frac = -frac
+				}
 				fmt.Printf(".%-6d", frac)
 			} else {
 				fmt.Printf("%-7s", " ")

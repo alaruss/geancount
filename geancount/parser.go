@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"path/filepath"
 	"slices"
 	"strings"
 	"time"
@@ -190,13 +191,28 @@ func groupLines(lines []Line) ([]LineGroup, error) {
 	return lineGroups, nil
 }
 
-func (l *Ledger) createDirectives(lineGroups []LineGroup) error {
+func (l *Ledger) sortDirectives() {
+	slices.SortFunc(l.directives, func(i, j Directive) int {
+		if i.Date().Before(j.Date()) {
+			return -1
+		} else if i.Date().After(j.Date()) {
+			return 1
+		}
+		return 0
+	})
+}
+func (l *Ledger) createDirectives(lineGroups []LineGroup, filename string, parentDir string) error {
 	directives := []Directive{}
 	for _, lg := range lineGroups {
 
 		switch lg.lines[0].tokens[0].text {
-		case "include", "pushtag", "poptag": // TODO implement
+		case "pushtag", "poptag": // TODO implement
 			continue
+		case "include":
+			err := l.include(lg, parentDir)
+			if err != nil {
+				return err
+			}
 		case "option":
 			err := l.applyOption(lg)
 			if err == ErrNotDirective {
@@ -227,18 +243,26 @@ func (l *Ledger) createDirectives(lineGroups []LineGroup) error {
 			directives = append(directives, directive)
 		}
 	}
-	slices.SortFunc(directives, func(i, j Directive) int {
-		if i.Date().Before(j.Date()) {
-			return -1
-		} else if i.Date().After(j.Date()) {
-			return 1
-		}
-		return 0
-	})
-	l.directives = directives
+	l.directives = append(l.directives, directives...)
 	return nil
 }
 
+func (l *Ledger) include(lg LineGroup, parentDir string) error {
+	line := lg.lines[0]
+	if len(line.tokens) < 2 {
+		return ErrNotDirective
+	}
+	includeFilename := line.tokens[1].text
+	absIncludeFilename, err := filepath.Abs(includeFilename)
+	if err != nil {
+		return err
+	}
+	if absIncludeFilename != includeFilename {
+		includeFilename = filepath.Join(parentDir, includeFilename)
+	}
+	err = l.loadFile(includeFilename, false)
+	return err
+}
 func (l *Ledger) applyOption(lg LineGroup) error {
 	line := lg.lines[0]
 	if len(line.tokens) < 2 {

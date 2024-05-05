@@ -2,6 +2,7 @@ package geancount
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -108,11 +109,14 @@ func newPostings(lines []Line) ([]Posting, error) {
 	postings := []Posting{}
 	for _, line := range lines {
 		accountName := line.tokens[0].text
+		if !strings.HasPrefix(accountName, "Assets:") && !strings.HasPrefix(accountName, "Equity:") && !strings.HasPrefix(accountName, "Income:") && !strings.HasPrefix(accountName, "Expenses:") && !strings.HasPrefix(accountName, "Liabilities:") {
+			continue
+		}
 		amount := Amount{}
-		if len(line.tokens) > 1 {
-			amountValue, err := decimal.NewFromString(line.tokens[1].text)
+		if len(line.tokens) > 2 {
+			amountValue, err := decimal.NewFromString(strings.ReplaceAll(line.tokens[1].text, ",", ""))
 			if err != nil {
-				return postings, fmt.Errorf("can not parse amount value")
+				return postings, fmt.Errorf("can not parse amount value %s %s", accountName, line.tokens[1].text)
 			}
 			amount.value = amountValue
 			amount.currency = Currency(line.tokens[2].text)
