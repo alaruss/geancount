@@ -26,11 +26,11 @@ func CreateCLI() {
 			if err != nil {
 				return err
 			}
-			balances, err := ledger.GetBalances()
+			ls, err := ledger.GetState()
 			if err != nil {
 				return err
 			}
-			err = ledger.PrintBalances(balances)
+			err = ledger.PrintBalances(ls)
 			if err != nil {
 				return err
 			}

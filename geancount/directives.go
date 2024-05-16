@@ -41,7 +41,7 @@ func (b Balance) Apply(ls *LedgerState) error {
 		currencyBalance = decimal.Zero
 	}
 	if !currencyBalance.Equal(b.amount.value) {
-		return fmt.Errorf("Balance expected %s but calcultated %s", b.amount.value, currencyBalance)
+		return fmt.Errorf("Balance of %s expected %s but calcultated %s", b.account, b.amount.value, currencyBalance)
 	}
 	return nil
 }

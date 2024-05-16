@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 	"github.com/shopspring/decimal"
@@ -71,28 +72,31 @@ func (l *Ledger) loadFile(filename string, sortDirectives bool) error {
 	return nil
 }
 
-// GetBalances compute balances for all accounts in ledger
-func (l *Ledger) GetBalances() (AccountsBalances, error) {
+// GetState compute state of ledger
+func (l *Ledger) GetState() (LedgerState, error) {
 	ls := LedgerState{}
 	ls.accounts = map[AccountName]Account{}
 	ls.balances = AccountsBalances{}
 	for _, directive := range l.directives {
 		err := directive.Apply(&ls)
 		if err != nil {
-			log.Error().Msg(err.Error())
+			log.Error().Msgf("%s %s", formatDate(directive.Date()), err.Error())
 		}
 	}
-	return ls.balances, nil
+	return ls, nil
 }
 
 // PrintBalances prints to stdput formatted balances for all accounts
-func (l *Ledger) PrintBalances(balances AccountsBalances) error {
-	accounts := make([]AccountName, 0, len(balances))
+func (l *Ledger) PrintBalances(ls LedgerState) error {
+	accounts := make([]AccountName, 0, len(ls.accounts))
 	accountPad := 0
-	for a := range balances {
-		accounts = append(accounts, a)
-		if len(a) > accountPad {
-			accountPad = len(a)
+	for acountName, account := range ls.accounts {
+		if !account.hadTransactions {
+			continue
+		}
+		accounts = append(accounts, acountName)
+		if len(acountName) > accountPad {
+			accountPad = len(acountName)
 		}
 	}
 	accountPad += 4
@@ -100,32 +104,43 @@ func (l *Ledger) PrintBalances(balances AccountsBalances) error {
 		return cmp.Compare(string(i), string(j))
 	})
 	one := decimal.New(1, 0)
+	sb := strings.Builder{}
 	for _, a := range accounts {
-		currencies := make([]Currency, 0, len(balances[a]))
-		for c := range balances[a] {
+		currencies := make([]Currency, 0, len(ls.balances[a]))
+		for c := range ls.balances[a] {
 			currencies = append(currencies, c)
 		}
 		slices.SortFunc(currencies, func(i, j Currency) int {
 			return cmp.Compare(string(i), string(j))
 		})
 		for _, c := range currencies {
-			v := balances[a][c]
+			v := ls.balances[a][c]
+			// Right padding of a with length accountPad
+			sb.WriteString(fmt.Sprintf("%-[1]*[2]s\t", accountPad, a))
+			// Left padding of integer part of number
+			sb.WriteString(fmt.Sprintf("%10d", v.IntPart()))
+
+			// Decimal part
 			frac := v.Mod(one).CoefficientInt64()
-			fmt.Printf("%-[1]*[2]s\t", accountPad, a)
-			fmt.Printf("%10d", v.IntPart())
-			if frac != 0 {
-				if frac < 0 {
-					frac = -frac
-				}
-				fmt.Printf(".%-6d", frac)
-			} else {
-				fmt.Printf("%-7s", " ")
+			if frac < 0 {
+				frac = -frac
 			}
-			fmt.Printf("%s\n", c)
+			fracS := fmt.Sprintf("%d", frac)
+			// If decimal has only one digit add 0 in front
+			if len(fracS) == 1 {
+				fracS = "0" + fracS
+			}
+			sb.WriteString(fmt.Sprintf(".%-7s", fracS))
+
+			// Currency name
+			sb.WriteString(fmt.Sprintf("%s\n", c))
 		}
+		// Empty account
 		if len(currencies) == 0 {
-			fmt.Printf("%-[1]*[2]s\n", accountPad, a)
+			// Right padding of a with length accountPad
+			sb.WriteString(fmt.Sprintf("%-[1]*[2]s\n", accountPad, a))
 		}
 	}
+	fmt.Print(sb.String())
 	return nil
 }

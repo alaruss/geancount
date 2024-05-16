@@ -40,6 +40,11 @@ func (t Transaction) Apply(ls *LedgerState) error {
 		}
 	}
 	for _, p := range t.postings {
+		if !ls.accounts[p.account].hadTransactions {
+			acc := ls.accounts[p.account]
+			acc.hadTransactions = true
+			ls.accounts[p.account] = acc
+		}
 		if _, ok := ls.balances[p.account][p.amount.currency]; !ok {
 			ls.balances[p.account][p.amount.currency] = p.amount.value
 		} else {
@@ -89,7 +94,7 @@ func newTransaction(lg LineGroup) (Transaction, error) {
 	if status == "txn" {
 		status = line.tokens[len(line.tokens)-1].text
 	}
-	if status != "?" && status != "*" {
+	if status != "!" && status != "*" {
 		return Transaction{}, fmt.Errorf("unknown status %s", status)
 	}
 	postings, err := newPostings(lg.lines[1:])

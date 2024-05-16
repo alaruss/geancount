@@ -12,8 +12,9 @@ type AccountName string
 
 // Account is where data is stored
 type Account struct {
-	name       AccountName
-	currencies map[Currency]struct{}
+	name            AccountName
+	currencies      map[Currency]struct{}
+	hadTransactions bool
 }
 
 func (a Account) String() string {
