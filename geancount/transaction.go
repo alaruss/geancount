@@ -3,7 +3,6 @@ package geancount
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/shopspring/decimal"
 )
@@ -16,16 +15,11 @@ type Posting struct {
 
 // Transaction is a movement from one account to another
 type Transaction struct {
-	date      time.Time
+	directive
 	status    string
 	payee     string
 	narration string
 	postings  []Posting
-}
-
-// Date return transaction date
-func (t Transaction) Date() time.Time {
-	return t.date
 }
 
 // Apply balance postings of the transaction and change balances
@@ -77,7 +71,7 @@ func (t Transaction) balancePostings() error {
 	return nil
 }
 
-func newTransaction(lg LineGroup) (Transaction, error) {
+func newTransaction(lg LineGroup, fileName string) (Transaction, error) {
 	line := lg.lines[0]
 	date, err := parseDate(line.tokens[0].text)
 	if err != nil {
@@ -102,7 +96,13 @@ func newTransaction(lg LineGroup) (Transaction, error) {
 		return Transaction{}, err
 	}
 
-	d := Transaction{date: date, status: status, payee: payee, narration: narration, postings: postings}
+	d := Transaction{
+		directive: directive{date: date, lineNum: line.lineNum, fileName: fileName},
+		status:    status,
+		payee:     payee,
+		narration: narration,
+		postings:  postings,
+	}
 	err = d.balancePostings()
 	if err != nil {
 		return Transaction{}, err

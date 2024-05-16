@@ -201,7 +201,7 @@ func (l *Ledger) sortDirectives() {
 		return 0
 	})
 }
-func (l *Ledger) createDirectives(lineGroups []LineGroup, filename string, parentDir string) error {
+func (l *Ledger) createDirectives(lineGroups []LineGroup, fileName string, parentDir string) error {
 	directives := []Directive{}
 	for _, lg := range lineGroups {
 
@@ -225,13 +225,13 @@ func (l *Ledger) createDirectives(lineGroups []LineGroup, filename string, paren
 			var directive Directive
 			switch lg.lines[0].tokens[1].text {
 			case "open":
-				directive, err = newAccountOpen(lg)
+				directive, err = newAccountOpen(lg, fileName)
 			case "close":
-				directive, err = newAccountClose(lg)
+				directive, err = newAccountClose(lg, fileName)
 			case "balance":
-				directive, err = newBalance(lg)
+				directive, err = newBalance(lg, fileName)
 			case "*", "!", "txn":
-				directive, err = newTransaction(lg)
+				directive, err = newTransaction(lg, fileName)
 			default:
 				continue
 			}

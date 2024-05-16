@@ -80,7 +80,7 @@ func (l *Ledger) GetState() (LedgerState, error) {
 	for _, directive := range l.directives {
 		err := directive.Apply(&ls)
 		if err != nil {
-			log.Error().Msgf("%s %s", formatDate(directive.Date()), err.Error())
+			log.Error().Msgf("%s:%02d %s", directive.FileName(), directive.LineNum(), err.Error())
 		}
 	}
 	return ls, nil

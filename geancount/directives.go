@@ -12,7 +12,27 @@ import (
 // Directive in interface for all entries in the Ledger
 type Directive interface {
 	Date() time.Time
+	LineNum() int
+	FileName() string
 	Apply(*LedgerState) error
+}
+
+type directive struct {
+	date     time.Time
+	lineNum  int
+	fileName string
+}
+
+func (d directive) Date() time.Time {
+	return d.date
+}
+
+func (d directive) LineNum() int {
+	return d.lineNum
+}
+
+func (d directive) FileName() string {
+	return d.fileName
 }
 
 // ErrNotDirective indecates that directive can not be parsed
@@ -20,14 +40,9 @@ var ErrNotDirective = errors.New("not directive") // TODO check if needed
 
 // Balance checks the amount of the account at the date
 type Balance struct {
-	date    time.Time
+	directive
 	account AccountName
 	amount  Amount
-}
-
-// Date returns date of the balance
-func (b Balance) Date() time.Time {
-	return b.date
 }
 
 // Apply check the if the calcualted balance is correct
@@ -48,26 +63,16 @@ func (b Balance) Apply(ls *LedgerState) error {
 
 // Price set the price of a currency on the date
 type Price struct {
-	date     time.Time
+	directive
 	currency Currency
 	amount   Amount
 }
 
-// Date returns date
-func (p Price) Date() time.Time {
-	return p.date
-}
-
 // AccountOpen opens account and optionaly set currencies which can be used
 type AccountOpen struct {
-	date       time.Time
+	directive
 	account    AccountName
 	currencies map[Currency]struct{}
-}
-
-// Date returns date
-func (a AccountOpen) Date() time.Time {
-	return a.date
 }
 
 // Apply adds account to the LedgerState
@@ -82,13 +87,8 @@ func (a AccountOpen) Apply(ls *LedgerState) error {
 
 // AccountClose closes the account
 type AccountClose struct {
-	date    time.Time
+	directive
 	account AccountName
-}
-
-// Date returns date
-func (a AccountClose) Date() time.Time {
-	return a.date
 }
 
 // Apply removes account for the LedgerState
@@ -101,7 +101,7 @@ func (a AccountClose) Apply(ls *LedgerState) error {
 	return nil
 }
 
-func newAccountOpen(lg LineGroup) (AccountOpen, error) {
+func newAccountOpen(lg LineGroup, fileName string) (AccountOpen, error) {
 	line := lg.lines[0]
 	date, err := parseDate(line.tokens[0].text)
 	if err != nil {
@@ -111,7 +111,11 @@ func newAccountOpen(lg LineGroup) (AccountOpen, error) {
 		return AccountOpen{}, fmt.Errorf("more tokens than expected")
 	}
 	accountName := line.tokens[2].text
-	d := AccountOpen{date: date, account: AccountName(accountName), currencies: map[Currency]struct{}{}}
+	d := AccountOpen{
+		directive:  directive{date: date, lineNum: line.lineNum, fileName: fileName},
+		account:    AccountName(accountName),
+		currencies: map[Currency]struct{}{},
+	}
 	if len(line.tokens) == 4 {
 		for _, currName := range strings.Split(line.tokens[3].text, ";") {
 			currName = strings.Trim(currName, "")
@@ -123,7 +127,7 @@ func newAccountOpen(lg LineGroup) (AccountOpen, error) {
 	return d, nil
 }
 
-func newAccountClose(lg LineGroup) (AccountClose, error) {
+func newAccountClose(lg LineGroup, fileName string) (AccountClose, error) {
 	line := lg.lines[0]
 	date, err := parseDate(line.tokens[0].text)
 	if err != nil {
@@ -133,11 +137,14 @@ func newAccountClose(lg LineGroup) (AccountClose, error) {
 		return AccountClose{}, fmt.Errorf("more tokens than expected")
 	}
 	accountName := line.tokens[2].text
-	d := AccountClose{date: date, account: AccountName(accountName)}
+	d := AccountClose{
+		directive: directive{date: date, lineNum: line.lineNum, fileName: fileName},
+		account:   AccountName(accountName),
+	}
 	return d, nil
 }
 
-func newBalance(lg LineGroup) (Balance, error) {
+func newBalance(lg LineGroup, fileName string) (Balance, error) {
 	line := lg.lines[0]
 	date, err := parseDate(line.tokens[0].text)
 	if err != nil {
@@ -152,11 +159,15 @@ func newBalance(lg LineGroup) (Balance, error) {
 		return Balance{}, fmt.Errorf("can not parse amount value %s", line.tokens[3].text)
 	}
 	amount := Amount{value: amountValue, currency: Currency(line.tokens[4].text)}
-	d := Balance{date: date, account: AccountName(accountName), amount: amount}
+	d := Balance{
+		directive: directive{date: date, lineNum: line.lineNum, fileName: fileName},
+		account:   AccountName(accountName),
+		amount:    amount,
+	}
 	return d, nil
 }
 
-func newPrice(lg LineGroup) (Price, error) {
+func newPrice(lg LineGroup, fileName string) (Price, error) {
 	line := lg.lines[0]
 	date, err := parseDate(line.tokens[0].text)
 	if err != nil {
@@ -171,6 +182,10 @@ func newPrice(lg LineGroup) (Price, error) {
 		return Price{}, fmt.Errorf("can not parse amount value")
 	}
 	amount := Amount{value: amountValue, currency: Currency(line.tokens[4].text)}
-	d := Price{date: date, currency: currency, amount: amount}
+	d := Price{
+		directive: directive{date: date, lineNum: line.lineNum, fileName: fileName},
+		currency:  currency,
+		amount:    amount,
+	}
 	return d, nil
 }
