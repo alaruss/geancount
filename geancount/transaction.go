@@ -26,10 +26,14 @@ type Transaction struct {
 func (t Transaction) Apply(ls *LedgerState) error {
 	// Before apply check if all postings can be applied
 	for _, p := range t.postings {
-		if _, ok := ls.accounts[p.account]; !ok {
-			return fmt.Errorf("Account %s is not open", p.account)
+		acc, ok := ls.accounts[p.account]
+		if !ok {
+			return fmt.Errorf("Posting to unknows account %s", p.account)
 		}
-		if !ls.accounts[p.account].CurrencyAllowed(p.amount.currency) {
+		if acc.IsClosed(t.Date()) {
+			return fmt.Errorf("Account %s is closed", p.account)
+		}
+		if !acc.CurrencyAllowed(p.amount.currency) {
 			return fmt.Errorf("Currency %s can not be used in account %s", p.amount.currency, p.account)
 		}
 	}

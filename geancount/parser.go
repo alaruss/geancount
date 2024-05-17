@@ -2,12 +2,12 @@ package geancount
 
 import (
 	"bufio"
+	"cmp"
 	"fmt"
 	"io"
 	"path/filepath"
 	"slices"
 	"strings"
-	"time"
 	"unicode/utf8"
 
 	"github.com/rs/zerolog/log"
@@ -198,7 +198,7 @@ func (l *Ledger) sortDirectives() {
 		} else if i.Date().After(j.Date()) {
 			return 1
 		}
-		return 0
+		return cmp.Compare(i.Order(), j.Order())
 	})
 }
 func (l *Ledger) createDirectives(lineGroups []LineGroup, fileName string, parentDir string) error {
@@ -279,8 +279,4 @@ func (l *Ledger) applyOption(lg LineGroup) error {
 		log.Info().Int("line", line.lineNum).Msgf("Unknown option %s", optionName)
 	}
 	return nil
-}
-
-func parseDate(s string) (time.Time, error) {
-	return time.Parse("2006-01-02", s)
 }
