@@ -23,6 +23,7 @@ type Account struct {
 	hadTransactions bool
 	opened          []time.Time
 	closed          []time.Time
+	pad             *Pad
 }
 
 func (a Account) String() string {
@@ -64,6 +65,18 @@ func (a Account) IsClosed(checkDate time.Time) bool {
 type Amount struct {
 	value    decimal.Decimal
 	currency Currency
+}
+
+func (a Amount) String() string {
+	return fmt.Sprintf("%s %s", a.value, a.currency)
+}
+
+// Negative return -a
+func (a Amount) Negative() Amount {
+	return Amount{
+		value:    a.value.Neg(),
+		currency: a.currency,
+	}
 }
 
 // AccountOpen opens account and optionaly set currencies which can be used

@@ -28,7 +28,7 @@ func (t Transaction) Apply(ls *LedgerState) error {
 	for _, p := range t.postings {
 		acc, ok := ls.accounts[p.account]
 		if !ok {
-			return fmt.Errorf("Posting to unknows account %s", p.account)
+			return fmt.Errorf("Posting to unknow account %s", p.account)
 		}
 		if acc.IsClosed(t.Date()) {
 			return fmt.Errorf("Account %s is closed", p.account)

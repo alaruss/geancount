@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+const defaultDirectiveOrder = 100000
+
 // Directive in interface for all entries in the Ledger
 type Directive interface {
 	Date() time.Time
@@ -36,7 +38,7 @@ func (d directive) FileName() string {
 
 func (d directive) Order() int {
 	if d.order == 0 {
-		return 10_000
+		return defaultDirectiveOrder
 	}
 	return d.order
 }

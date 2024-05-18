@@ -230,7 +230,9 @@ func (l *Ledger) createDirectives(lineGroups []LineGroup, fileName string, paren
 				directive, err = newAccountClose(lg, fileName)
 			case "balance":
 				directive, err = newBalance(lg, fileName)
-			case "*", "!", "txn":
+			case "pad":
+				directive, err = newPad(lg, fileName)
+			case "*", "!", "txn", "p":
 				directive, err = newTransaction(lg, fileName)
 			default:
 				continue
