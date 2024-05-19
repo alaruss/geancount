@@ -11,5 +11,5 @@ func TestPad(t *testing.T) {
 	assert.NotNil(t, ledger)
 	ledger.LoadFile("testdata/pads.bean")
 	_, err := ledger.GetState()
-	assert.Nil(t, err)  // TODO this newer fails because atm the error only logged 
+	assert.Nil(t, err) // TODO this newer fails because atm the error only logged
 }

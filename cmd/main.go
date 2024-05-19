@@ -2,9 +2,8 @@
 package cmd
 
 import (
+	"log/slog"
 	"os"
-
-	"github.com/rs/zerolog/log"
 
 	"github.com/alaruss/geancount/geancount"
 	"github.com/urfave/cli/v2"
@@ -68,6 +67,6 @@ func CreateCLI() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		log.Fatal().Msg(err.Error())
+		slog.Error(err.Error())
 	}
 }

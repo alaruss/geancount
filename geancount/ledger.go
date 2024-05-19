@@ -3,12 +3,12 @@ package geancount
 import (
 	"cmp"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
 
-	"github.com/rs/zerolog/log"
 	"github.com/shopspring/decimal"
 )
 
@@ -80,7 +80,7 @@ func (l *Ledger) GetState() (LedgerState, error) {
 	for _, directive := range l.directives {
 		err := directive.Apply(&ls)
 		if err != nil {
-			log.Error().Msgf("%s:%02d %s", directive.FileName(), directive.LineNum(), err.Error())
+			slog.Error(fmt.Sprintf("%s:%02d %s", directive.FileName(), directive.LineNum(), err.Error()))
 		}
 	}
 	return ls, nil

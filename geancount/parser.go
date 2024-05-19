@@ -5,12 +5,11 @@ import (
 	"cmp"
 	"fmt"
 	"io"
+	"log/slog"
 	"path/filepath"
 	"slices"
 	"strings"
 	"unicode/utf8"
-
-	"github.com/rs/zerolog/log"
 )
 
 // Token is a minimal part of input
@@ -273,12 +272,12 @@ func (l *Ledger) applyOption(lg LineGroup) error {
 	switch optionName := line.tokens[1].text; optionName {
 	case "operating_currency":
 		if len(line.tokens) < 3 {
-			log.Info().Int("line", line.lineNum).Msg("operating_currency has no currency")
+			slog.Info("operating_currency has no currency")
 			return ErrNotDirective
 		}
 		l.operatingCurrencies = append(l.operatingCurrencies, Currency(line.tokens[2].text))
 	default:
-		log.Info().Int("line", line.lineNum).Msgf("Unknown option %s", optionName)
+		slog.Info(fmt.Sprintf("Unknown option %s", optionName))
 	}
 	return nil
 }
