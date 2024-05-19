@@ -2,8 +2,8 @@ package geancount
 
 import (
 	"cmp"
+	"errors"
 	"fmt"
-	"log/slog"
 	"os"
 	"path/filepath"
 	"slices"
@@ -63,13 +63,10 @@ func (l *Ledger) loadFile(filename string, sortDirectives bool) error {
 	}
 
 	err = l.createDirectives(lineGroups, filename, parentDir)
-	if err != nil {
-		return err
-	}
 	if sortDirectives {
 		l.sortDirectives()
 	}
-	return nil
+	return err
 }
 
 // GetState compute state of ledger
@@ -77,13 +74,14 @@ func (l *Ledger) GetState() (LedgerState, error) {
 	ls := LedgerState{}
 	ls.accounts = map[AccountName]Account{}
 	ls.balances = AccountsBalances{}
+	errs := []error{}
 	for _, directive := range l.directives {
 		err := directive.Apply(&ls)
 		if err != nil {
-			slog.Error(fmt.Sprintf("%s:%02d %s", directive.FileName(), directive.LineNum(), err.Error()))
+			errs = append(errs, fmt.Errorf("%s:%02d %s", directive.FileName(), directive.LineNum(), err.Error()))
 		}
 	}
-	return ls, nil
+	return ls, errors.Join(errs...)
 }
 
 // PrintBalances prints to stdput formatted balances for all accounts

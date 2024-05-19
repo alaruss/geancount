@@ -2,7 +2,8 @@
 package cmd
 
 import (
-	"log/slog"
+	"errors"
+	"fmt"
 	"os"
 
 	"github.com/alaruss/geancount/geancount"
@@ -14,35 +15,39 @@ func init() {
 }
 
 func printBalances(cCtx *cli.Context) error {
+	errs := []error{}
 	filename := cCtx.Args().Get(0)
 	ledger := geancount.NewLedger()
 	err := ledger.LoadFile(filename)
 	if err != nil {
-		return err
+		errs = append(errs, err)
 	}
 	ls, err := ledger.GetState()
 	if err != nil {
-		return err
+		errs = append(errs, err)
 	}
-	err = ledger.PrintBalances(ls)
+	err = errors.Join(errs...)
 	if err != nil {
-		return err
+		fmt.Printf("%s\n\n", err)
 	}
-	return nil
+
+	err = ledger.PrintBalances(ls)
+	return err
 }
 
 func checkLedger(cCtx *cli.Context) error {
+	errs := []error{}
 	filename := cCtx.Args().Get(0)
 	ledger := geancount.NewLedger()
 	err := ledger.LoadFile(filename)
 	if err != nil {
-		return err
+		errs = append(errs, err)
 	}
 	_, err = ledger.GetState()
 	if err != nil {
-		return err
+		errs = append(errs, err)
 	}
-	return nil
+	return errors.Join(errs...)
 }
 
 // CreateCLI creates  CLI interface
@@ -67,6 +72,7 @@ func CreateCLI() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		slog.Error(err.Error())
+		fmt.Print(err)
+		os.Exit(1)
 	}
 }

@@ -3,9 +3,9 @@ package geancount
 import (
 	"bufio"
 	"cmp"
+	"errors"
 	"fmt"
 	"io"
-	"log/slog"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -202,22 +202,22 @@ func (l *Ledger) sortDirectives() {
 }
 func (l *Ledger) createDirectives(lineGroups []LineGroup, fileName string, parentDir string) error {
 	directives := []Directive{}
+	errs := []error{}
 	for _, lg := range lineGroups {
-
 		switch lg.lines[0].tokens[0].text {
 		case "pushtag", "poptag": // TODO implement
 			continue
 		case "include":
 			err := l.include(lg, parentDir)
 			if err != nil {
-				return err
+				errs = append(errs, err)
 			}
 		case "option":
 			err := l.applyOption(lg)
 			if err == ErrNotDirective {
 				continue
 			} else if err != nil {
-				return err
+				errs = append(errs, err)
 			}
 		default:
 			var err error
@@ -239,13 +239,13 @@ func (l *Ledger) createDirectives(lineGroups []LineGroup, fileName string, paren
 			if err == ErrNotDirective { // just ignore
 				continue
 			} else if err != nil {
-				return err
+				errs = append(errs, err)
 			}
 			directives = append(directives, directive)
 		}
 	}
 	l.directives = append(l.directives, directives...)
-	return nil
+	return errors.Join(errs...)
 }
 
 func (l *Ledger) include(lg LineGroup, parentDir string) error {
@@ -272,12 +272,11 @@ func (l *Ledger) applyOption(lg LineGroup) error {
 	switch optionName := line.tokens[1].text; optionName {
 	case "operating_currency":
 		if len(line.tokens) < 3 {
-			slog.Info("operating_currency has no currency")
-			return ErrNotDirective
+			return fmt.Errorf("operating_currency has no currency")
 		}
 		l.operatingCurrencies = append(l.operatingCurrencies, Currency(line.tokens[2].text))
 	default:
-		slog.Info(fmt.Sprintf("Unknown option %s", optionName))
+		return fmt.Errorf("Unknown option %s", optionName)
 	}
 	return nil
 }

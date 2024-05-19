@@ -43,5 +43,5 @@ func (d directive) Order() int {
 	return d.order
 }
 
-// ErrNotDirective indecates that directive can not be parsed
-var ErrNotDirective = errors.New("not directive") // TODO check if needed
+// ErrNotDirective indicates that line can not be parsed
+var ErrNotDirective = errors.New("not directive")
