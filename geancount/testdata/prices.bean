@@ -1,0 +1,24 @@
+2000-01-01 open Assets:Invest
+2000-01-01 open Assets:Bank EUR
+
+2000-01-01 *
+  Assets:Invest                       1.5 S1 {100.00  EUR}  ; 150
+  Assets:Bank  
+
+2000-01-01 *
+  Assets:Invest                       1.2 S2 @ 10.00  EUR  ; 12
+  Assets:Bank         
+
+2000-01-01 *
+  Assets:Invest                         3 S3 @@ 60.00 EUR ; 60
+  Assets:Bank               
+
+2000-01-01 *
+  Assets:Invest                         1 S4 {30.00  EUR}  @ 33.00 EUR
+  Assets:Bank  
+
+2000-01-04 balance Assets:Bank    -252.00 EUR
+2000-01-04 balance Assets:Invest      1.5 S1
+2000-01-04 balance Assets:Invest      1.2 S2
+2000-01-04 balance Assets:Invest        3 S3
+2000-01-04 balance Assets:Invest        1 S4

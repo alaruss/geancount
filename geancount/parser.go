@@ -133,6 +133,12 @@ func parseInput(r io.Reader) ([]Line, error) {
 			} else {
 				state.inQuote = true
 			}
+		case '{', '}':
+			state.addToken()
+			state.sb.WriteRune(r)
+			if !state.inComment {
+				state.addToken()
+			}
 		case ';':
 			if !state.inComment {
 				state.addToken()

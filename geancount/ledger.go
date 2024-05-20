@@ -24,6 +24,8 @@ type LedgerState struct {
 	balances AccountsBalances
 }
 
+const printPrecision = 5
+
 // Ledger ir representing of transaction history
 type Ledger struct {
 	directives          []Directive
@@ -127,6 +129,8 @@ func (l *Ledger) PrintBalances(ls LedgerState) error {
 			// If decimal has only one digit add 0 in front
 			if len(fracS) == 1 {
 				fracS = "0" + fracS
+			} else if len(fracS) > printPrecision {
+				fracS = fracS[:printPrecision]
 			}
 			sb.WriteString(fmt.Sprintf(".%-7s", fracS))
 

@@ -72,7 +72,7 @@ func CreateCLI() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		fmt.Print(err)
+		fmt.Println(err)
 		os.Exit(1)
 	}
 }

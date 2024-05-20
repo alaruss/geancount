@@ -53,23 +53,28 @@ func (t Transaction) Apply(ls *LedgerState) error {
 }
 
 func (t Transaction) balancePostings() error {
-	// TODO Deal with many currencies
 	sum := decimal.NewFromInt(0)
 	blankIndex := -1
-	var curency Currency
+	var currency Currency = ""
 	for i, posting := range t.postings {
-		if posting.amount.currency == "" {
+		if posting.amount.EffectiveCurrency() == "" {
 			if blankIndex != -1 {
 				return fmt.Errorf("more than one empty posing")
 			}
 			blankIndex = i
 		} else {
-			sum = sum.Add(posting.amount.value)
-			curency = posting.amount.currency
+			effectiveCurrency := posting.amount.EffectiveCurrency()
+			/* TODO Get effective currency from cost ( 10.0 S1 {})
+			if currency != "" && currency != effectiveCurrency {
+				return fmt.Errorf("more than one effective currencies: %s and %s", currency, effectiveCurrency)
+			}
+			*/
+			sum = sum.Add(posting.amount.EffectiveValue())
+			currency = effectiveCurrency
 		}
 	}
 	if blankIndex != -1 {
-		t.postings[blankIndex].amount.currency = curency
+		t.postings[blankIndex].amount.currency = currency
 		t.postings[blankIndex].amount.value = decimal.Zero.Sub(sum)
 	}
 	return nil
@@ -90,10 +95,7 @@ func newTransaction(lg LineGroup, fileName string) (Transaction, error) {
 		narration = line.tokens[2].text
 	}
 	if status == "txn" {
-		status = line.tokens[len(line.tokens)-1].text
-	}
-	if status != "!" && status != "*" {
-		return Transaction{}, fmt.Errorf("unknown status %s", status)
+		status = "*"
 	}
 	postings, err := newPostings(lg.lines[1:])
 	if err != nil {
@@ -129,6 +131,43 @@ func newPostings(lines []Line) ([]Posting, error) {
 			}
 			amount.value = amountValue
 			amount.currency = Currency(line.tokens[2].text)
+
+			if len(line.tokens) > 3 {
+				if line.tokens[3].text == "{" {
+					if len(line.tokens) > 4 && line.tokens[4].text == "}" {
+						amount.atCost = true
+					} else {
+						if len(line.tokens) < 7 || line.tokens[6].text != "}" {
+							return postings, fmt.Errorf("Unbalanced curled bracked in posting %s %s", accountName, line.tokens[1].text)
+						}
+						cost, err := decimal.NewFromString(strings.ReplaceAll(line.tokens[4].text, ",", ""))
+						if err != nil {
+							return postings, fmt.Errorf("can not parse exchange rate %s", line.tokens[4].text)
+						}
+						priceCurrency := Currency(line.tokens[5].text)
+						amount.price = &cost
+						amount.priceCurrency = &priceCurrency
+						amount.atCost = true
+					}
+				} else if line.tokens[3].text == "@" && len(line.tokens) > 5 {
+					price, err := decimal.NewFromString(strings.ReplaceAll(line.tokens[4].text, ",", ""))
+					if err != nil {
+						return postings, fmt.Errorf("can not parse exchange rate %s", line.tokens[4].text)
+					}
+					priceCurrency := Currency(line.tokens[5].text)
+					amount.price = &price
+					amount.priceCurrency = &priceCurrency
+				} else if line.tokens[3].text == "@@" && len(line.tokens) > 5 {
+					totalPrice, err := decimal.NewFromString(strings.ReplaceAll(line.tokens[4].text, ",", ""))
+					if err != nil {
+						return postings, fmt.Errorf("can not parse exchange rate %s", line.tokens[4].text)
+					}
+					price := totalPrice.Div(amount.value)
+					priceCurrency := Currency(line.tokens[5].text)
+					amount.price = &price
+					amount.priceCurrency = &priceCurrency
+				}
+			}
 		}
 		p := Posting{account: AccountName(accountName), amount: amount}
 		postings = append(postings, p)

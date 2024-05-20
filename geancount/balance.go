@@ -21,6 +21,12 @@ type Pad struct {
 	sourceAccount AccountName
 }
 
+var defaultPrecision decimal.Decimal
+
+func init() {
+	defaultPrecision, _ = decimal.NewFromString("0.01")
+}
+
 // Apply check the if the calcualted balance is correct
 func (b Balance) Apply(ls *LedgerState) error {
 	accountBalance, ok := ls.balances[b.account]
@@ -31,8 +37,9 @@ func (b Balance) Apply(ls *LedgerState) error {
 	if !ok {
 		calculated = decimal.Zero
 	}
-	if !calculated.Equal(b.amount.value) {
-		acc := ls.accounts[b.account]
+	acc := ls.accounts[b.account]
+	diff := calculated.Sub(b.amount.value).Abs()
+	if diff.GreaterThanOrEqual(defaultPrecision) {
 		if acc.pad != nil {
 			transation, err := acc.pad.createTransaction(b, calculated)
 			if err != nil {
@@ -45,6 +52,8 @@ func (b Balance) Apply(ls *LedgerState) error {
 			if !ls.balances[b.account][b.amount.currency].Equal(b.amount.value) {
 				return fmt.Errorf("Could not create pad transaction for %s", b.account)
 			}
+			acc.pad = nil
+			ls.accounts[b.account] = acc
 			return nil
 		}
 		return fmt.Errorf("Balance of %s expected %s but calcultated %s", b.account, b.amount.value, calculated)
