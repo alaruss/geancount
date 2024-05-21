@@ -237,8 +237,18 @@ func (l *Ledger) createDirectives(lineGroups []LineGroup, fileName string, paren
 				directive, err = newBalance(lg, fileName)
 			case "pad":
 				directive, err = newPad(lg, fileName)
+			case "price":
+				directive, err = newPrice(lg, fileName)
 			case "*", "!", "txn", "p":
 				directive, err = newTransaction(lg, fileName)
+				if err == nil {
+					prices, pirceErr := newPriceFromTransaction(directive.(Transaction))
+					if pirceErr == nil {
+						for i := range prices {
+							directives = append(directives, prices[i])
+						}
+					}
+				}
 			default:
 				continue
 			}
