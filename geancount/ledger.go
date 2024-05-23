@@ -20,8 +20,9 @@ type AccountsBalances map[AccountName]CurrenciesAmounts
 
 // LedgerState presents current state of all accounts in Ledger
 type LedgerState struct {
-	accounts map[AccountName]Account
-	balances AccountsBalances
+	accounts  map[AccountName]Account
+	balances  AccountsBalances
+	inventory map[Currency][]PricePoint
 }
 
 const printPrecision = 5
@@ -76,6 +77,7 @@ func (l *Ledger) GetState() (LedgerState, error) {
 	ls := LedgerState{}
 	ls.accounts = map[AccountName]Account{}
 	ls.balances = AccountsBalances{}
+	ls.inventory = map[Currency][]PricePoint{}
 	errs := []error{}
 	for _, directive := range l.directives {
 		err := directive.Apply(&ls)

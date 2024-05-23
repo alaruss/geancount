@@ -3,6 +3,7 @@ package geancount
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/shopspring/decimal"
 )
@@ -14,8 +15,17 @@ type Price struct {
 	amount   Amount
 }
 
+type PricePoint struct {
+	date   time.Time
+	amount Amount
+}
+
 // Apply adds price to the inventory
 func (p Price) Apply(ls *LedgerState) error {
+	if _, ok := ls.inventory[p.currency]; !ok {
+		ls.inventory[p.currency] = []PricePoint{}
+	}
+	ls.inventory[p.currency] = append(ls.inventory[p.currency], PricePoint{date: p.date, amount: p.amount})
 	return nil
 }
 
@@ -28,6 +38,7 @@ func newPriceFromTransaction(t Transaction) ([]Price, error) {
 					date:     t.Date(),
 					lineNum:  t.lineNum,
 					fileName: t.fileName,
+					order:    priceOrder,
 				},
 				currency: posting.amount.currency,
 				amount:   Amount{value: *posting.amount.price, currency: *posting.amount.priceCurrency},
@@ -57,6 +68,7 @@ func newPrice(lg LineGroup, fileName string) (Price, error) {
 			date:     date,
 			lineNum:  line.lineNum,
 			fileName: fileName,
+			order:    priceOrder,
 		},
 		currency: currency,
 		amount:   amount,

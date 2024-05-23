@@ -193,7 +193,7 @@ func newAccountOpen(lg LineGroup, fileName string) (AccountOpen, error) {
 			date:     date,
 			lineNum:  line.lineNum,
 			fileName: fileName,
-			order:    1,
+			order:    accountOpenOrder,
 		},
 		account:    AccountName(accountName),
 		currencies: map[Currency]struct{}{},
@@ -224,7 +224,7 @@ func newAccountClose(lg LineGroup, fileName string) (AccountClose, error) {
 			date:     date,
 			lineNum:  line.lineNum,
 			fileName: fileName,
-			order:    2,
+			order:    accountCloseOrder,
 		},
 		account: AccountName(accountName),
 	}

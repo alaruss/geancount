@@ -6,6 +6,11 @@ import (
 )
 
 const defaultDirectiveOrder = 100000
+const accountOpenOrder = 1
+const accountCloseOrder = 2
+const priceOrder = 3
+const padOrder = 9
+const balanceOrder = 10
 
 // Directive in interface for all entries in the Ledger
 type Directive interface {
