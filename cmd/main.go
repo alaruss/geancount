@@ -30,8 +30,9 @@ func printBalances(cCtx *cli.Context) error {
 	if err != nil {
 		fmt.Printf("%s\n\n", err)
 	}
+	filterExpression := cCtx.String("filter-expression")
 
-	err = ledger.PrintBalances(ls)
+	err = ledger.PrintBalances(ls, filterExpression)
 	return err
 }
 
@@ -54,14 +55,21 @@ func checkLedger(cCtx *cli.Context) error {
 func CreateCLI() {
 	app := &cli.App{
 		Name:   "geancount",
-		Usage:  "A utility to process beancount files. By default print balances",
-		Action: printBalances,
+		Usage:  "A utility to process beancount files. By default check the file",
+		Action: checkLedger,
 		Commands: []*cli.Command{
 			{
 				Name:    "balances",
 				Aliases: []string{"bal"},
-				Usage:   "Prints balances",
-				Action:  printBalances,
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:    "filter-expression",
+						Aliases: []string{"e"},
+						Usage:   "Filter expression for which account balances to display",
+					},
+				},
+				Usage:  "Prints balances",
+				Action: printBalances,
 			},
 			{
 				Name:   "check",

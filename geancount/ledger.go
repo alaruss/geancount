@@ -89,11 +89,14 @@ func (l *Ledger) GetState() (LedgerState, error) {
 }
 
 // PrintBalances prints to stdput formatted balances for all accounts
-func (l *Ledger) PrintBalances(ls LedgerState) error {
+func (l *Ledger) PrintBalances(ls LedgerState, filterExpression string) error {
 	accounts := make([]AccountName, 0, len(ls.accounts))
 	accountPad := 0
 	for acountName, account := range ls.accounts {
 		if !account.hadTransactions {
+			continue
+		}
+		if filterExpression != "" && !strings.Contains(string(acountName), filterExpression) {
 			continue
 		}
 		accounts = append(accounts, acountName)
