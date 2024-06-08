@@ -22,7 +22,7 @@ type AccountsBalances map[AccountName]CurrenciesAmounts
 type LedgerState struct {
 	accounts  map[AccountName]Account
 	balances  AccountsBalances
-	inventory map[Currency][]PricePoint
+	prices map[Currency][]PricePoint
 }
 
 const printPrecision = 5
@@ -77,7 +77,7 @@ func (l *Ledger) GetState() (LedgerState, error) {
 	ls := LedgerState{}
 	ls.accounts = map[AccountName]Account{}
 	ls.balances = AccountsBalances{}
-	ls.inventory = map[Currency][]PricePoint{}
+	ls.prices = map[Currency][]PricePoint{}
 	errs := []error{}
 	for _, directive := range l.directives {
 		err := directive.Apply(&ls)

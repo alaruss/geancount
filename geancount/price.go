@@ -22,10 +22,10 @@ type PricePoint struct {
 
 // Apply adds price to the inventory
 func (p Price) Apply(ls *LedgerState) error {
-	if _, ok := ls.inventory[p.currency]; !ok {
-		ls.inventory[p.currency] = []PricePoint{}
+	if _, ok := ls.prices[p.currency]; !ok {
+		ls.prices[p.currency] = []PricePoint{}
 	}
-	ls.inventory[p.currency] = append(ls.inventory[p.currency], PricePoint{date: p.date, amount: p.amount})
+	ls.prices[p.currency] = append(ls.prices[p.currency], PricePoint{date: p.date, amount: p.amount})
 	return nil
 }
 
