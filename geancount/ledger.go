@@ -127,17 +127,21 @@ func (l *Ledger) PrintBalances(ls LedgerState, filterExpression string) error {
 
 			// Decimal part
 			frac := v.Mod(one).CoefficientInt64()
-			if frac < 0 {
-				frac = -frac
+			if frac != 0 {
+				if frac < 0 {
+					frac = -frac
+				}
+				fracS := fmt.Sprintf("%d", frac)
+				// If decimal has only one digit add 0
+				if len(fracS) == 1 {
+					fracS = fracS + "0"
+				} else if len(fracS) > printPrecision {
+					fracS = fracS[:printPrecision]
+				}
+				sb.WriteString(fmt.Sprintf(".%-7s", fracS))
+			} else {
+				sb.WriteString(fmt.Sprintf("%-8s", " "))
 			}
-			fracS := fmt.Sprintf("%d", frac)
-			// If decimal has only one digit add 0 in front
-			if len(fracS) == 1 {
-				fracS = "0" + fracS
-			} else if len(fracS) > printPrecision {
-				fracS = fracS[:printPrecision]
-			}
-			sb.WriteString(fmt.Sprintf(".%-7s", fracS))
 
 			// Currency name
 			sb.WriteString(fmt.Sprintf("%s\n", c))
