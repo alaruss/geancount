@@ -91,13 +91,10 @@ func (l *Ledger) GetState() (LedgerState, error) {
 }
 
 // PrintBalances prints to stdput formatted balances for all accounts
-func (l *Ledger) PrintBalances(ls LedgerState, filterExpression string) error {
+func (l *Ledger) PrintBalances(ls LedgerState, filterExpression string, printEmpty bool) error {
 	accounts := make([]AccountName, 0, len(ls.accounts))
 	accountPad := 0
-	for acountName, account := range ls.accounts {
-		if !account.hadTransactions {
-			continue
-		}
+	for acountName := range ls.accounts {
 		if filterExpression != "" && !strings.Contains(string(acountName), filterExpression) {
 			continue
 		}
@@ -153,8 +150,10 @@ func (l *Ledger) PrintBalances(ls LedgerState, filterExpression string) error {
 		}
 		// Empty account
 		if len(currencies) == 0 {
-			// Right padding of a with length accountPad
-			sb.WriteString(fmt.Sprintf("%-[1]*[2]s\n", accountPad, a))
+			if printEmpty {
+				// Right padding of a with length accountPad
+				sb.WriteString(fmt.Sprintf("%-[1]*[2]s\n", accountPad, a))
+			}
 		}
 	}
 	fmt.Print(sb.String())

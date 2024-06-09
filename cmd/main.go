@@ -31,8 +31,9 @@ func printBalances(cCtx *cli.Context) error {
 		fmt.Printf("%s\n\n", err)
 	}
 	filterExpression := cCtx.String("filter-expression")
+	printEmpty := cCtx.Bool("print-empty")
 
-	err = ledger.PrintBalances(ls, filterExpression)
+	err = ledger.PrintBalances(ls, filterExpression, printEmpty)
 	return err
 }
 
@@ -64,8 +65,13 @@ func CreateCLI() {
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:    "filter-expression",
-						Aliases: []string{"e"},
+						Aliases: []string{"f"},
 						Usage:   "Filter expression for which account balances to display",
+					},
+					&cli.BoolFlag{
+						Name:    "print-empty",
+						Aliases: []string{"e"},
+						Usage:   "Print empty accounts",
 					},
 				},
 				Usage:  "Prints balances",
