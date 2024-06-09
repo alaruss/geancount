@@ -63,41 +63,12 @@ func (a Account) IsClosed(checkDate time.Time) bool {
 
 // Amount is value and currency
 type Amount struct {
-	value         decimal.Decimal
-	currency      Currency
-	price         *decimal.Decimal
-	priceCurrency *Currency
-	atCost        bool
+	value    decimal.Decimal
+	currency Currency
 }
 
 func (a Amount) String() string {
-	s := fmt.Sprintf("%s %s", a.value, a.currency)
-	if a.price != nil && a.priceCurrency != nil {
-		if a.atCost {
-			s = fmt.Sprintf("%s {%s %s}", s, a.price, *a.priceCurrency)
-		} else {
-			s = fmt.Sprintf("%s @ %s %s", s, a.price, *a.priceCurrency)
-		}
-	} else if a.atCost {
-		s = fmt.Sprintf("%s {}", s)
-	}
-	return s
-}
-
-// EffectiveValue return effective value with price into consideration
-func (a Amount) EffectiveValue() decimal.Decimal {
-	if a.price == nil {
-		return a.value
-	}
-	return a.value.Mul(*a.price)
-}
-
-// EffectiveCurrency return effective currency with price into consideration
-func (a Amount) EffectiveCurrency() Currency {
-	if a.priceCurrency == nil {
-		return a.currency
-	}
-	return *a.priceCurrency
+	return fmt.Sprintf("%s %s", a.value, a.currency)
 }
 
 // Negative return -a

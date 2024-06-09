@@ -22,3 +22,18 @@
 2000-01-04 balance Assets:Invest      1.2 S2
 2000-01-04 balance Assets:Invest        3 S3
 2000-01-04 balance Assets:Invest        1 S4
+
+2000-01-05 price S1 200 EUR
+
+2000-01-06 *
+  Assets:Invest                                1 S1 {200.00 EUR}
+  Assets:Bank  
+
+
+2000-01-07 *
+  Assets:Invest                                1 S1 {200.00 EUR}
+  Assets:Bank  
+
+2000-01-07 *
+  Assets:Invest                                -3.5 S1 {}
+  Assets:Bank                               ; 550.00 EUR

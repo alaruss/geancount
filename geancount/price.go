@@ -32,7 +32,7 @@ func (p Price) Apply(ls *LedgerState) error {
 func newPriceFromTransaction(t Transaction) ([]Price, error) {
 	prices := []Price{}
 	for _, posting := range t.postings {
-		if posting.amount.price != nil && posting.amount.priceCurrency != nil {
+		if posting.price != nil {
 			prices = append(prices, Price{
 				directive: directive{
 					date:     t.Date(),
@@ -41,7 +41,7 @@ func newPriceFromTransaction(t Transaction) ([]Price, error) {
 					order:    priceOrder,
 				},
 				currency: posting.amount.currency,
-				amount:   Amount{value: *posting.amount.price, currency: *posting.amount.priceCurrency},
+				amount:   Amount{value: *&posting.price.value, currency: *&posting.price.currency},
 			})
 		}
 	}

@@ -20,9 +20,10 @@ type AccountsBalances map[AccountName]CurrenciesAmounts
 
 // LedgerState presents current state of all accounts in Ledger
 type LedgerState struct {
-	accounts  map[AccountName]Account
-	balances  AccountsBalances
-	prices map[Currency][]PricePoint
+	accounts    map[AccountName]Account
+	balances    AccountsBalances
+	inventories map[AccountName]map[Currency][]Lot
+	prices      map[Currency][]PricePoint
 }
 
 const printPrecision = 5
@@ -77,6 +78,7 @@ func (l *Ledger) GetState() (LedgerState, error) {
 	ls := LedgerState{}
 	ls.accounts = map[AccountName]Account{}
 	ls.balances = AccountsBalances{}
+	ls.inventories = map[AccountName]map[Currency][]Lot{}
 	ls.prices = map[Currency][]PricePoint{}
 	errs := []error{}
 	for _, directive := range l.directives {
@@ -112,7 +114,10 @@ func (l *Ledger) PrintBalances(ls LedgerState, filterExpression string) error {
 	sb := strings.Builder{}
 	for _, a := range accounts {
 		currencies := make([]Currency, 0, len(ls.balances[a]))
-		for c := range ls.balances[a] {
+		for c, v := range ls.balances[a] {
+			if v.Equal(decimal.Zero) {
+				continue
+			}
 			currencies = append(currencies, c)
 		}
 		slices.SortFunc(currencies, func(i, j Currency) int {

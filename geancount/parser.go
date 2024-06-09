@@ -242,6 +242,8 @@ func (l *Ledger) createDirectives(lineGroups []LineGroup, fileName string, paren
 			case "*", "!", "txn", "p":
 				directive, err = newTransaction(lg, fileName)
 				if err == nil {
+
+					// Add prices as with implicit price plugin in beancount
 					prices, pirceErr := newPriceFromTransaction(directive.(Transaction))
 					if pirceErr == nil {
 						for i := range prices {
